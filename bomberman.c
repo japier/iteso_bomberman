@@ -3,22 +3,33 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 #include "zelda.h"
+#define ALTO 20
+#define LARGO 20
 typedef struct Personaje{
   int x;
   int y;
   int vidas;
   int puntos;
+  int estado;
 }PERSONAJE;
+typedef struct Bomba{
+  int tiempo;
+  int x;
+  int y;
+}
 ALLEGRO_DISPLAY * display = NULL;
 ALLEGRO_EVENT_QUEUE * event_queue = NULL;
 ALLEGRO_BITMAP * imagen = NULL;
 ALLEGRO_PATH * path = NULL;
+BOMBA bombas[10];
+int contador_bombas = 0;
 int tablero[20][20];
 
 PERSONAJE personaje;
 int init(){
   int i, j;
   ALLEGRO_TIMER * timer = NULL;
+
   if(!al_init())printf("No se pudo");
   if(!al_init_image_addon())printf("No se pudo abrir el gestor de imagenes\n");
   if(!al_install_keyboard()) printf("No se pudo iniciar el teclado\n");
@@ -33,8 +44,8 @@ int init(){
   al_register_event_source(event_queue, al_get_display_event_source(display));
   al_register_event_source(event_queue, al_get_keyboard_event_source());
   al_register_event_source(event_queue, al_get_timer_event_source(timer));
-  for (i = 0; i < 20; ++i){
-    for (j = 0; j < 20; ++j)
+  for (i = 0; i < ALTO; ++i){
+    for (j = 0; j < LARGO; ++j)
     {
       tablero[i][j] = 0;
     }
@@ -50,10 +61,36 @@ int init(){
 int entrada(ALLEGRO_EVENT * event){
   switch(event->keyboard.keycode){
     case ALLEGRO_KEY_RIGHT:
-      personaje.x++;
+      if(personaje.x < LARGO-1){
+        personaje.x++;
+        personaje.estado = 0;
+      }
     break;
     case ALLEGRO_KEY_LEFT:
-      personaje.x--;
+      if(personaje.x > 0){
+        personaje.x--;
+        personaje.estado = 8;
+      }
+    break;
+    case ALLEGRO_KEY_DOWN:
+      if(personaje.y < ALTO-1){
+        personaje.y++;
+        personaje.estado = 4;
+      }
+    break;
+    case ALLEGRO_KEY_UP:
+      if(personaje.y > 0){
+        personaje.y--;
+        personaje.estado = 1;
+      }
+    break;
+    case ALLEGRO_KEY_B:
+    case ALLEGRO_KEY_X:
+      BOMBA bomba;
+      bombas[contador_bombas] = bomba;
+      bomba.x = personaje.x;
+      bomba.y = personaje.y;
+      bomba.tiempo;
     break;
   }
   fprintf(stderr, "tecla: %d", event->keyboard.keycode);
@@ -65,7 +102,11 @@ void logica(int x){
 }
 void dibujo(){
   al_clear_to_color(al_map_rgb(0, 0 ,255));
-  al_draw_bitmap_region(imagen, sprites[0][0], sprites[0][1], sprites[0][2], sprites[0][3], personaje.x*20, personaje.y*20, 0);
+  al_draw_bitmap_region(imagen, sprites[personaje.estado][0], sprites[personaje.estado][1], 
+    sprites[personaje.estado][2], sprites[personaje.estado][3], personaje.x*20, personaje.y*20, 0);
+
+  al_draw_bitmap_region(imagen, sprites[100][0], sprites[100][1], 
+    sprites[100][2], sprites[100][3], personaje.x*20, personaje.y*20, 0);
   al_flip_display();
 }
 int main(int argc, char const *argv[])
