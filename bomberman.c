@@ -147,7 +147,7 @@ int main(int argc, char const *argv[])
       dibujo();
       contador++;
     }
-    if(contador%800 == 0 )
+    if(contador% 800 == 0 )
     {
       logica(1);
     }
